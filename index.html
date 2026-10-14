@@ -88,6 +88,10 @@ h1{font-family:var(--display); font-weight:400; font-size:clamp(3.3rem,15vw,6.2r
 .next:focus-visible{outline:3px solid var(--deep); outline-offset:3px}
 .done{margin:22px 0 0; text-align:center; font-family:var(--display); font-size:2rem; line-height:1.2; color:var(--rose)}
 
+.musicbar{max-width:440px; width:100%; margin:0 auto}
+.musicbar:not(.playing) .play{animation:beat 1.6s ease-in-out infinite}
+.mlabel{font-family:var(--display); font-size:2rem; line-height:1; color:var(--rose)}
+.msub{font-size:.85rem; line-height:1.3}
 .finalwrap{display:flex; justify-content:center}
 .petal{position:fixed; top:-30px; width:13px; height:17px; background:linear-gradient(135deg,var(--baby),var(--rose)); border-radius:80% 0 80% 0; opacity:.7; pointer-events:none; z-index:0; animation:fall linear infinite}
 @keyframes fall{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(var(--dx),55vh,0) rotate(200deg)}100%{transform:translate3d(calc(var(--dx)*-.5),112vh,0) rotate(420deg)}}
@@ -136,6 +140,13 @@ h1{font-family:var(--display); font-weight:400; font-size:clamp(3.3rem,15vw,6.2r
 </svg>
 
 <main>
+  <div class="player musicbar" id="musicbar">
+    <button type="button" class="play" id="musicBtn" aria-label="Play music">
+      <svg class="pl" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      <svg class="pa" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+    </button>
+    <div class="pmid"><span class="mlabel">Play me first!</span><span class="msub" id="musicSub">Soft music for your gifts</span></div>
+  </div>
   <header>
     <h1>A gift for my bunny</h1>
     <p class="sub">Tap a gift to open it. Press play and I'll read the note to you.</p>
@@ -281,7 +292,18 @@ h1{font-family:var(--display); font-weight:400; font-size:clamp(3.3rem,15vw,6.2r
     try{ if(actx&&actx.state==='suspended') actx.resume() }catch(e){}
     var p=bgm.play(); if(p&&p.catch) p.catch(function(){ musicOn=false });
   }
-  ['pointerdown','keydown'].forEach(function(ev){ document.addEventListener(ev,startMusic) });
+  var mbar=document.getElementById('musicbar'), mbtn=document.getElementById('musicBtn'), msub=document.getElementById('musicSub');
+  function mState(){
+    var on=!bgm.paused;
+    mbar.classList.toggle('playing',on);
+    mbtn.setAttribute('aria-label',on?'Pause music':'Play music');
+    msub.textContent=on?'Music is playing':'Soft music for your gifts';
+  }
+  bgm.addEventListener('play',mState); bgm.addEventListener('pause',mState);
+  mbtn.addEventListener('click',function(){
+    if(!bgm.paused){ musicOn=false; bgm.pause(); return }
+    musicOn=false; startMusic();
+  });
   aud.addEventListener('play',function(){ level(duck) });
   ['pause','ended'].forEach(function(ev){ aud.addEventListener(ev,function(){
     level(base);
